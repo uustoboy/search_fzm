@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="description" content="">
+<meta name="apple-touch-fullscreen" content="yes" />
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+<meta content="no" name="apple-mobile-web-app-capable" />
+<meta content="black" name="apple-mobile-web-app-status-bar-style" />
+<meta content="telephone=no" name="format-detection" />
+<style>
+*{margin:0;padding: 0;}
+a{ text-decoration: none;}
+html,body{ height: 100%;}
+.game{ width: 100%;height:100%; background-color:#f06060; }
+.start{ height: 100%; position:relative;}
+.tit{ font-size: 2em; color: #fff; font-weight: bold; text-align:center; padding-top: 3em;}
+.title{ line-height: 1.3em; color: #ff9e9e; font-size: 1.3em; text-align:center; margin: 0.5em;}
+.btn_main{ width: 100%; position: absolute; bottom: 10%;}
+.btn{ display: block; width: 40%; margin:0 auto;line-height:1.8em;  font-size: 1.8em; text-align:center; background-color: #fbad25; border-radius: 10px; color:#fff;}
+#gameWrap{width:100%;height:100%;display: box; display: -webkit-box; display: -moz-box; -webkit-box-pack:center; -moz-box-pack:center; -webkit-box-align:center; -moz-box-align:center; }
+.game_main{ border: 10px solid red; background-color: #ddd; border-radius: 10px;text-align:center;width:100%; box-sizing: border-box;}
+.imInfo{text-align:center; width:100%;}
+.game_main .game_img{margin:0 auto;}
+.game_info{ padding-top: 5%;position: absolute;width: 100%;}
+.game_gk{ color: #ff9d9f; font-size:1.2em; text-indent:5%;}
+.game_time{ position: absolute;left:50%;margin-left: -10px; width: 20px; text-align: center; display: inline-block; padding: 0 15px; border-radius: 13px; font-size: 1.2em; font-weight: bold; color: #fecbca; height: 30px; line-height: 30px; background: #fd9191;}
+
+.end{height: 100%; position:relative; background-color: #a74343;}
+.end p{ color: #332212; text-align:center; font-weight: bold; font-size: 2em; position:absolute; top:30%; width:100%; }
+.end .btn_main{ bottom:40%;}
+</style>
+<title>寻找房祖名</title>
+</head>
+<body>
+
+<div class="game" id="game" >
+   <div class="start" id="start" >
+        <h2 class="tit">全民摇一摇寻找房祖名</h2>
+        <p class="title">虽然柯少向龙叔保证不会带坏房祖名，但龙叔强烈要求你找回房祖名。</p>
+        <div class="btn_main">
+            <a href="javascript:;" class="btn" id="btn">开始游戏</a>
+        </div>
+    </div>
+    <div class="rel" id="gameWrap" style=" display: none;">
+        <div class="game_info">
+            <span class="game_gk">过关：<span id="game_jf"></span></span>
+            <span class="game_time" id="gameTime"></span>
+        </div>
+        <div class="game_wrap">
+            <div class="game_main clearfix" id="gameMain" > 
+                <!-- <img src="img/kzd.gif" class="game_img" width="50%" height="50%">
+                <img src="img/kzd.gif" class="game_img" width="50%" height="50%">
+                <img src="img/kzd.gif" class="game_img" width="50%" height="50%">
+                <img src="img/kzd.gif" class="game_img" width="50%" height="50%">
+                -->
+            </div>
+        </div>
+        
+    </div> 
+    
+</div>
+<div class="end" id="end" style=" display: none;">
+    <p>龙叔的路人粉lv<span id="endJf"></span></p>
+    <div class="btn_main">
+        <a href="javascript:;" class="btn" id="aGain">再来一次</a>
+    </div>
+</div>
+</body>
+<script src="js/zepto.min.js"></script>
+<script>
+$(function(){
+    
+    $('#btn').on('click',function(){
+        $('#start').hide();
+        Game.init();
+    });
+
+    var Game = {
+        gkNum   : 0,
+        timer   : 60,
+        btn     : 0 ,
+        round   : 0,
+        endTime : null,
+        arr     : [1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f'], 
+        init  : function(){
+            this.game = $('#game');
+            this.oParent = $('#gameWrap');
+            this.oParent.show();
+
+            this.oJf = $('#game_jf'); // 积分;
+            this.gameMain = $('#gameMain');
+            this.shijian = $('#gameTime');
+            this.end = $('#end');
+            this.endJf = $('#endJf');
+            this.aGain = $('#aGain');
+            this.createEnemy(this.gkNum); // 关卡初始值;
+            this.createTime(); //倒计时
+            this.clickEnemy();
+            this.againGame();
+        },
+        createTime   : function(){
+            var This = this;
+            This.shijian.html(This.timer);
+            this.endTime = setInterval(function( ){
+                var t = This.timer--;
+                if( t < 0 ){
+                    clearInterval( This.endTime );
+                    This.game.hide();
+                    This.endJf.html( parseInt(This.gkNum)+1);
+                    This.end.show();
+                }else{
+                    This.shijian.html( t );
+                }
+                
+            },1000);
+        },
+        createEnemy : function( num ){
+            var html = '';
+            this.round = fnRound( ((num+2)*(num+2)) );
+            this.oJf.html( parseInt(num)+1 );
+            var wh = 100/(num+2);
+            for( var i=0,len = ((num+2)*(num+2));i<len;i++ ){
+                if( this.round == i ){
+                   html += '<img src="img/fzm.gif" class="game_img imgFzm">'; 
+                }else{
+                   html += '<img src="img/kzd.gif" class="game_img" >'; 
+                }
+            }
+            if( num > 1 ){
+                this.sortBg();
+            }
+            this.gameMain.html(html);
+            this.gameMain.find('img').css({'width':wh+'%','height':wh+'%'});
+            
+        },
+        clickEnemy : function(){
+            var This = this;
+            this.gameMain.delegate('img.imgFzm','tap',function(){
+                This.btn++;
+                This.sortBg();
+                This.createEnemy( This.gkNum );
+                if( This.btn == 3 ){
+                    This.btn = 0;
+                    This.gkNum++;
+                    This.createEnemy( This.gkNum );
+                }
+            });
+        },
+        sortBg     : function(){ 
+            this.arr.sort(function(){return Math.random()-0.5;});
+            this.arr.length=6;
+            this.gameMain.css('border',"10px solid #"+this.arr.join('')+"");
+        },
+        againGame  : function(){
+            this.aGain.on('tap',function(){
+                window.location.reload();
+                return false;
+            });
+        }
+    }
+    
+});
+
+//随机数
+function fnRound( n ){
+   return  Math.round(Math.random()*(n-1));
+}
+</script>
+</html>
